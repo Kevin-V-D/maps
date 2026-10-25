@@ -9,45 +9,56 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 btn.addEventListener("click", async () => {
     try {
-        // 1. Vraag de gebruiker om een seriële poort te selecteren
         const port = await navigator.serial.requestPort();
-
-        // 2. Open de poort (stel de baudrate in, bijv. 9600 of 115200 voor Arduino)
         await port.open({ baudRate: 115200 });
 
-        // 3. Zet de inkomende stream om naar leesbare tekst
         const textDecoder = new TextDecoderStream();
-        const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
+        port.readable.pipeTo(textDecoder.writable);
         const reader = textDecoder.readable.getReader();
 
         let buffer = "";
 
-        // 4. Lees continu de data uit
         while (true) {
-          const { value, done } = await reader.read();
-          if (done) {
-            // De stream is gestopt
-            break;
-          }
-          if (value) {
-            console.log(buffer);
-            buffer += value;
-            if (buffer.includes("lat")) {
-              let parts = value.split(",");
-              if (parts.length === 2) {
-                let lat = parseFloat(parts[0]);
-                let lng = parseFloat(parts[1]);
-                if (!isNaN(lat) && !isNaN(lng)) {
-                  console.log(`Nieuwe coördinaten -> Lat: ${lat}, Lng: ${lng}`);
-                  
-                  // Verplaats hier je kaart view of update je marker!
-                  map.panTo([lat, lng]);
+            const { value, done } = await reader.read();
+            if (done) break;
+
+            if (value) {
+                buffer += value;
+                
+                // 1. Hak de buffer in losse regels op basis van een enter (\n)
+                let lines = buffer.split("\n");
+                // 2. Bewaar het laatste (misschien nog incomplete) stukje in de buffer
+                buffer = lines.pop(); 
+
+                // 3. Loop door alle complete regels die zijn binnengekomen
+                for (let line of lines) {
+                    line = line.trim(); // Schoonmaken
+                    
+                    // Print alles wat binnenkomt in de console zodat je het kunt zien
+                    console.log("Ontvangen:", line);
+
+                    // Kijk of de regel coördinaten bevat (en negeer "geen gps")
+                    if (line.includes("lat") && line.includes(",")) {
+                        let parts = line.split(","); // Split op de komma
+                        if (parts.length === 2) {
+                            // parts[0] is bijv. "lat 53.017993" -> we pakken het tweede deel achter de spatie
+                            let latPart = parts[0].trim().split(/\s+/); 
+                            // parts[1] is bijv. "lon 6.555143" -> we pakken het tweede deel achter de spatie
+                            let lonPart = parts[1].trim().split(/\s+/); 
+
+                            let lat = parseFloat(latPart[1]);
+                            let lng = parseFloat(lonPart[1]);
+
+                            if (!isNaN(lat) && !isNaN(lng)) {
+                                console.log(`GPS Gevonden! Lat: ${lat}, Lng: ${lng}`);
+                                map.panTo([lat, lng]);
+                            }
+                        }
+                    }
                 }
-              }
             }
-          }
         }
     } catch (error) {
-      console.error("Fout bij verbinden met seriële poort:", error);
+        console.error("Fout bij verbinden met seriële poort:", error);
     }
 });
