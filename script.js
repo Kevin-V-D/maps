@@ -20,6 +20,8 @@ btn.addEventListener("click", async () => {
         const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
         const reader = textDecoder.readable.getReader();
 
+        let buffer = "";
+
         // 4. Lees continu de data uit
         while (true) {
           const { value, done } = await reader.read();
@@ -28,7 +30,21 @@ btn.addEventListener("click", async () => {
             break;
           }
           if (value) {
-            console.log(value);
+            console.log(buffer);
+            buffer += value;
+            if (buffer.includes("lat")) {
+              let parts = value.split(",");
+              if (parts.length === 2) {
+                let lat = parseFloat(parts[0]);
+                let lng = parsefloat(parts[1]);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                  console.log(`Nieuwe coördinaten -> Lat: ${lat}, Lng: ${lng}`);
+                  
+                  // Verplaats hier je kaart view of update je marker!
+                  map.panTo([lat, lng]);
+                }
+              }
+            }
           }
         }
     } catch (error) {
