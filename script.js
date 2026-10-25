@@ -13,7 +13,7 @@ btn.addEventListener("click", async () => {
         const port = await navigator.serial.requestPort();
 
         // 2. Open de poort (stel de baudrate in, bijv. 9600 of 115200 voor Arduino)
-        await port.open({ baudRate: 9600 });
+        await port.open({ baudRate: 115200 });
 
         // 3. Zet de inkomende stream om naar leesbare tekst
         const textDecoder = new TextDecoderStream();
