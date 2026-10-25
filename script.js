@@ -36,7 +36,7 @@ btn.addEventListener("click", async () => {
               let parts = value.split(",");
               if (parts.length === 2) {
                 let lat = parseFloat(parts[0]);
-                let lng = parsefloat(parts[1]);
+                let lng = parseFloat(parts[1]);
                 if (!isNaN(lat) && !isNaN(lng)) {
                   console.log(`Nieuwe coördinaten -> Lat: ${lat}, Lng: ${lng}`);
                   
