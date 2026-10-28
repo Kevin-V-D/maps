@@ -1,6 +1,6 @@
 const btn = document.querySelector(".read-gps");
 
-var map = L.map('map').setView([51.505, -0.09], 13);
+var map = L.map('map').setView([53.006392102274575, 6.539756364748749], 13);
 
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
@@ -15,6 +15,8 @@ btn.addEventListener("click", async () => {
         const textDecoder = new TextDecoderStream();
         port.readable.pipeTo(textDecoder.writable);
         const reader = textDecoder.readable.getReader();
+
+        var marker = L.marker([0, 0]).addTo(map);
 
         let buffer = "";
 
@@ -51,7 +53,8 @@ btn.addEventListener("click", async () => {
 
                             if (!isNaN(lat) && !isNaN(lng)) {
                                 console.log(`GPS Gevonden! Lat: ${lat}, Lng: ${lng}`);
-                                map.panTo([lat, lng]);
+                                marker.setLatLng([lat, lng]);
+                                //map.panTo([lat, lng]);
                             }
                         }
                     }
